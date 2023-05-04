@@ -1,0 +1,355 @@
+<template>
+	<view class="post-detail">
+		<view class="comment-header">
+			<img class="comment-avatar" :src="post.userAvatar" alt="avatar">
+			<view>
+				<view class="comment-author">{{ post.userName }}</view>
+				<view class="comment-time">{{ ts(post.createTime) }}</view>
+			</view>
+		</view>
+		<view class="post-content">
+			<h1 class="post-title">{{ post.title }}</h1>
+			<p>{{ post.content }}</p>
+			<image v-if="post.pictures" v-for="(src,index) in pictures" :key="index" :src="src" mode="aspectFill"
+				@click="showPreview(pictures,index)">
+			</image>
+			<p>时间：{{ (new Date(post.meetingTime/1000)).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }) }}</p>
+			<p>地点：{{ post.meetingAddress }}</p>
+		</view>
+		<view class="supporters-list">
+			<span class="supporters-title">参加者：</span>
+			<view class="supporters">
+				<view class="supporter" v-for="supporter in post.supporters" :key="supporter.id">
+					<img class="supporter-avatar" :src="supporter.avatar" alt="supporter-avatar">
+				</view>
+			</view>
+		</view>
+		<view class="post-support">
+			<button class="support-btn" @click="supportPost">
+				<span class="support-btn-text">{{ supported ? '已加入' : '加入' }}</span>
+			</button>
+		</view>
+		<view>
+
+		</view>
+		<view class="comment-form">
+			<textarea class="comment-input" placeholder="写点评论吧……" v-model="newComment"></textarea>
+			<view class="comment-header" @click="postComment">
+				<image class="comment-img" src="@/static/send.svg"></image>
+				<view class="comment-desc">发表评论</view>
+			</view>
+		</view>
+		<view class="post-comments">
+			<h2 class="comments-title" v-if="post.comments.total" >{{post.comments.total}}条留言：</h2>
+			<h2 class="comments-title" v-else>暂无留言</h2>
+			<view class="comment" v-for="comment in post.comments.list" :key="comment.id">
+				<view class="comment-header">
+					<img class="comment-avatar" :src="comment.userAvatar" alt="avatar">
+					<view>
+						<view class="comment-author">{{ comment.userName }}</view>
+						<view class="comment-time">{{ ts(comment.createdTime) }}</view>
+					</view>
+				</view>
+				<view class="comment-content">{{ comment.content }}</view>
+			</view>
+			<page-pagination v-show="show" :total="page.total"
+			 :showAround="true" :btnText="true" :forceEllipses="true" @change="change">
+			</page-pagination>
+		</view>
+	</view>
+</template>
+<script>
+	import time from '@/utils/time.js'
+	import PagePagination from '@/components/PagePagination.vue'
+	export default {
+		componentsI(){
+			PagePagination
+		},
+		data() {
+			return {
+				ts: time.time2feel,
+				post: {
+					id: 1,
+					title: '今天天气真好',
+					time: '2023-04-30 12:26',
+					addr: '学校背后东湖',
+					content: '今天天气真好，正适合钓鱼。',
+					author: {
+						id: 1,
+						name: '张三',
+						avatar: 'https://dummyimage.com/100x100/000/fff'
+					},
+					time: '2023-04-29 10:30:00',
+					supported: false,
+					supporters: [{
+						id: 1,
+						avatar: 'https://dummyimage.com/100x100/000/fff'
+					}],
+					comments: [{
+						id: 1,
+						user: {
+							id: 2,
+							name: '李四',
+							avatar: 'https://dummyimage.com/100x100/000/fff'
+						},
+						content: '走路确实很棒！',
+						time: '2023-04-29 11:00:00'
+					}]
+				},
+				pictures: [],
+				supported: false,
+				newComment: ''
+			}
+		},
+		onLoad() {
+			// #ifdef H5
+			const id = this.$route.query.id
+			// #endif
+			// #ifdef MP-WEIXIN
+			// 获取当前页面对象
+			const pages = getCurrentPages()
+			const currentPage = pages[pages.length - 1]
+			// 从页面对象中获取参数
+			const id = currentPage.options.id
+			// #endif
+			this.$api.getPost(id).then((res) => {
+				this.post = res
+				this.pictures = res.pictures.split(',')
+				this.post.supporters = [{
+					id: 1,
+					avatar: 'https://dummyimage.com/100x100/000/fff'
+				}]
+			})
+			
+			this.$api.getComment(id,1,10).then((res) => {
+				this.$set(this.post,"comments",res)
+			})
+			
+			console.log(this.post)
+		},
+		methods: {
+			supportPost() {
+				this.supported = !this.supported
+				if (this.supported) {
+					this.post.supporters.push({
+						id: this.post.supporters.length + 1,
+						avatar: 'https://dummyimage.com/100x100/000/fff'
+					})
+				} else {
+					this.post.supporters.pop()
+				}
+			},
+			postComment() {
+				if (this.newComment.trim()) {
+					let user = uni.getStorageSync("mine");
+					
+					this.$api.postComment(this.post.id,{userId:user.id,postId:this.post.id,content:this.newComment}).then((res) => {
+						if (res.status) {
+							this.post.comments.list.push({
+								userId:user.id,
+								userName:user.name,
+								userAvatar:user.avatar,
+								content: this.newComment,
+								createdTime: (new Date()).getTime()*1000,
+							})
+							this.$set(this.post,"comments",this.post.comments)
+						}
+					})
+					this.newComment = ''
+				}
+			},
+			showPreview(src, index) {
+				uni.previewImage({
+					urls: this.pictures,
+					current: index
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.post-detail {
+		padding: 20px;
+
+		.comment-header {
+			display: flex;
+			align-items: center;
+			margin-bottom: 10px;
+
+			.comment-avatar {
+				width: 40px;
+				height: 40px;
+				border-radius: 50%;
+				margin-right: 10px;
+			}
+
+			.comment-author {
+				font-size: 16px;
+				font-weight: bold;
+				margin-right: 10px;
+			}
+
+			.comment-time {
+				font-size: 12px;
+				color: #666;
+			}
+		}
+
+		.post-title {
+			font-size: 24px;
+			font-weight: bold;
+			margin-bottom: 20px;
+		}
+
+		.post-content {
+			margin-bottom: 20px;
+		}
+
+		.post-support {
+			text-align: center;
+			margin-bottom: 20px;
+
+			.support-btn {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 10px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				background-color: #fff;
+				cursor: pointer;
+
+				.uni-icon-likefill {
+					font-size: 24px;
+					margin-right: 5px;
+					color: #ff5b5c;
+				}
+
+				.support-btn-text {
+					font-size: 16px;
+					color: #666;
+				}
+
+				&:hover {
+					background-color: #f9f9f9;
+				}
+			}
+		}
+
+		.supporters-list {
+			margin-bottom: 20px;
+
+			.supporters-title {
+				font-size: 18px;
+				font-weight: bold;
+				margin-right: 10px;
+			}
+
+			.supporters {
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+
+				.supporter {
+					margin-right: 10px;
+					margin-bottom: 10px;
+
+					.supporter-avatar {
+						width: 40px;
+						height: 40px;
+						border-radius: 50%;
+					}
+				}
+			}
+		}
+
+		.post-comments {
+			padding-top: 50upx;
+			margin-bottom: 20px;
+
+			.comments-title {
+				font-size: 18px;
+				font-weight: bold;
+				margin-bottom: 10px;
+			}
+
+			.comment {
+				margin-bottom: 20px;
+
+				.comment-header {
+					display: flex;
+					align-items: center;
+					margin-bottom: 10px;
+
+					.comment-avatar {
+						width: 40px;
+						height: 40px;
+						border-radius: 50%;
+						margin-right: 10px;
+					}
+
+					.comment-author {
+						font-size: 16px;
+						font-weight: bold;
+						margin-right: 10px;
+					}
+
+					.comment-time {
+						font-size: 12px;
+						color: #666;
+					}
+				}
+
+				.comment-content {
+					font-size: 16px;
+				}
+			}
+		}
+
+		.comment-form {
+			position: relative;
+			border-radius: 0 0 20upx 0;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
+
+			textarea.comment-input {
+				height: 260upx;
+				width: 100%;
+				border: none;
+				resize: none;
+				font-size: 28rpx;
+				color: #666;
+				padding: 10rpx;
+				box-sizing: border-box;
+			}
+
+			.comment-header {
+				position: absolute;
+				bottom: -20upx;
+				right: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				height: 80rpx;
+				width: 200rpx;
+				background-color: seagreen;
+				color: #fff;
+				font-size: 30rpx;
+				cursor: pointer;
+				border-radius: 20upx 0 20upx 0;
+				transition: background-color 0.2s ease;
+
+				&:hover {
+					background-color: #00a388;
+				}
+
+				.comment-img {
+					width: 30rpx;
+					height: 30rpx;
+					margin-right: 10rpx;
+				}
+			}
+		}
+
+	}
+</style>
