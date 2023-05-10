@@ -1,6 +1,10 @@
 <template>
 	<view class="form">
 		<view class="form-item">
+			<text class="form-label">分类</text>
+			<uni-data-select v-model="categoryId" :localdata="category"></uni-data-select>
+		</view>
+		<view class="form-item">
 			<text class="form-label">标题</text>
 			<input class="form-input" type="text" placeholder="请输入标题" v-model="title" />
 		</view>
@@ -24,7 +28,8 @@
 		</view>
 		<view class="form-item">
 			<text class="form-label">上传</text>
-			<images-uploader :images="images" :osspath="osspath"></images-uploader>
+			<images-uploader :images="images" :osspath="osspath" @uploadImage='uploadImage' @delImage='delImage'>
+			</images-uploader>
 		</view>
 		<view class="form-item">
 			<button class="submit-button" @click="submitForm">提交</button>
@@ -33,17 +38,19 @@
 </template>
 
 <script>
-	import DateTimePicker from "@/components/DateTimePicker.vue"
-	import ImagesUploader from "@/components/ImagesUploader.vue"
+	import DateTimePicker from '@/components/DateTimePicker.vue'
+	import ImagesUploader from '@/components/ImagesUploader.vue'
+	// import DataSelect from '@/uni_modules/uni-data-select/components/uni-data-select/uni-data-select.vue'
 	export default {
 		components: {
 			DateTimePicker,
 			ImagesUploader,
+			// DataSelect,
 		},
 		data() {
 			return {
 				images: [],
-				osspath:"post/picture",
+				osspath: "post/picture",
 				title: '',
 				content: '',
 				number: 0,
@@ -55,15 +62,43 @@
 				select: (new Date).toLocaleString('sv-SE', {
 					timeZone: 'Asia/Shanghai'
 				}),
+				category: [],
+				categoryId: '',
 			}
 		},
+		mounted() {
+			this.category = uni.getStorageSync("category");
+			this.category.splice(0, 1)
+			this.category = this.category.map(item => {
+				return {
+					value: item.id,
+					text: item.name
+				}
+			})
+		},
 		methods: {
+			clear() {
+				this.title = ''
+				this.content = ''
+				this.number = 0
+				this.address = ''
+				this.category = []
+				this.categoryId = ''
+				this.images = []
+			},
+			uploadImage(url) {
+				this.images.push(url)
+			},
+			delImage(delImageIndex) {
+				this.images.splice(delImageIndex, 1)
+			},
 			submitForm() {
 				let user = uni.getStorageSync("mine");
-				console.log(this.images)
+				console.log(this.images, this.categoryId)
 				this.$api.postPost({
 					userId: user.id,
 					schoolId: user.school_id,
+					categoryId: this.categoryId,
 					title: this.title,
 					content: this.content,
 					meetingTime: (new Date(this.select)).getTime() * 1000,
@@ -72,6 +107,10 @@
 					pictures: this.images.toLocaleString(),
 				}).then((res) => {
 					console.log(res)
+					this.clear()
+					uni.switchTab({
+						url: `/pages/home/home`
+					})
 				})
 			},
 			onCancel(e) {

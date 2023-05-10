@@ -2,7 +2,7 @@ import request from '@/utils/request.js'
 import operate from '@/common/operate.js'
 
 const req = request({
-	baseUrl: 'http://10.0.0.148:9901'
+	baseUrl: 'http://127.0.0.1:9901'
 });
 
 //全局定义请求头
@@ -22,6 +22,12 @@ export default {
 	postPost: (data) => req.post('/post', data),
 	getSchoolPost: (schoolId, page, size) => req.get(`/school/${schoolId}/post?page=${page}&size=${size}`),
 	getPost: (postId) => req.get('/post/' + postId),
-	postComment: (postId,data) => req.post(`/post/${postId}/comment`,data),
-	getComment: (postId,page,size) => req.get(`/post/${postId}/comment?page=${page}&size=${size}`),
+	postComment: (postId, data) => req.post(`/post/${postId}/comment`, data),
+	getComment: (postId, page, size) => req.get(`/post/${postId}/comment?page=${page}&size=${size}`),
+	getCategory: () => req.get('/category'),
+	getPostSchoolCategory: (schoolId, categoryId, page, size) => req.get(
+		`/school/${schoolId}/post/category/${categoryId}?page=${page}&size=${size}`),
+	getHomeSearch: (params) => req.get(
+		`/school/${params.schoolId}/post/liketitle?page=${params.page}&size=${params.size}&title=${params.title}`),
+	addPostSupporter: (postId,userId) => req.post(`/post/${postId}/supporter`,{userId:userId})
 }

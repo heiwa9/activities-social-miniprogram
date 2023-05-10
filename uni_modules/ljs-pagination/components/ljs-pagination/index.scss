@@ -1,0 +1,49 @@
+
+.pagination{
+	width: 750upx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	.pagination-box{
+		overflow: hidden;
+		padding-top: 38upx;
+		display: flex;
+		flex-direction: row;
+		.ico{
+			flex: auto;
+			width: 40upx;
+			height: 40upx;
+			opacity: 1;
+			&.q{
+				background-image: url('../../images/ico_pagination_q.png');
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+			}
+			&.h{
+				background-image: url('../../images/ico_pagination_h.png');
+				background-repeat: no-repeat;
+				background-size: 100% 100%;
+			}
+			&.no{
+				opacity: 0.3;
+				cursor: not-allowed;
+			}
+		}
+		.number{
+			height: 40upx;
+			flex: auto;
+			flex-direction: row;
+			display: flex;
+			.item{
+				flex: auto;
+				width: 55upx;
+				height: 40upx;
+				line-height: 40upx;
+				text-align: center;
+				font-size: 24upx;
+				color: #666;
+				display: inline-block;
+			}
+		}
+	}
+}

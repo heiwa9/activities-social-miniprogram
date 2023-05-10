@@ -1,24 +1,27 @@
 <template>
 	<view class="container">
 		<view class="avatar-container">
-			<image class="avatar" :src="avatar" mode="aspectFill" @click="handleAvatarClick"></image>
+			<image class="avatar" :src="avatar" mode="aspectFill" @tap="handleAvatarClick"></image>
 			<view class="edit-avatar">修改头像</view>
 		</view>
 		<view class="info">
 			<view class="username">{{ username }}</view>
 			<view class="email">{{ school }}</view>
 			<view class="email">{{ email }}</view>
-			<text class="link" @click="goToRegister">注销账号</text>
 		</view>
-		<view class="button" @tap="logout">退出登录</view>
+		<view class="column_container">
+			<view class="column" @tap="myPush">我的发布</view>
+			<view class="column" @tap="myJoin">我的加入</view>
+			<view class="column" @tap="closeAccount">注销账号</view>
+			<view class="column" @tap="logout">退出登录</view>
+		</view>
 	</view>
 </template>
 
 <script>
 	import file from '@/utils/file.js'
 	export default {
-		components: {
-		},
+		components: {},
 		data() {
 			return {
 				userid: "",
@@ -39,6 +42,15 @@
 			this.school = user.school_name;
 		},
 		methods: {
+			myPush(){
+				
+			},
+			myJoin(){
+				
+			},
+			closeAccount(){
+				
+			},
 			logout() {
 				// uni.clearStorage();
 				// 退出登录，可以清除本地存储或后端的登录状态
@@ -54,7 +66,7 @@
 				uni.chooseImage({
 					count: 1,
 					success: (res) => {
-						file.imageUploader("user/avatar",res.tempFiles[0]).then((url) => {
+						file.imageUploader("user/avatar", res.tempFiles[0]).then((url) => {
 							this.$api.putAvatar({
 								id: this.userid,
 								avatar: url,
@@ -130,17 +142,20 @@
 			}
 		}
 
-		.button {
-			width: 200px;
-			height: 40px;
-			background-color: seagreen;
-			color: #fff;
-			border-radius: 5px;
-			border: none;
-			outline: none;
-			margin-top: 30px;
-			text-align: center;
-			line-height: 40px;
+		.column_container {
+			justify-content: center;
+			margin: 80upx 0 80upx 0;
+		}
+
+		.column {
+			padding: 20upx 140upx 20upx 140upx;
+			margin: 10upx 10upx 10upx 10upx;
+			color: whitesmoke;
+			background-color: darkgray;
+			border-radius: 0upx 30upx 0upx 30upx;
+			&:hover{
+				background-color: seagreen;
+			}
 		}
 	}
 </style>

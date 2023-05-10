@@ -1,4 +1,7 @@
 {
+	"easycom": {
+		"^u-(.*)": "@/uview-ui/components/u-$1/u-$1.vue"
+	},
 	"pages": [{
 			"path": "pages/login/login",
 			"style": {
@@ -20,7 +23,8 @@
 		{
 			"path": "pages/home/home",
 			"style": {
-				"navigationBarTitleText": "大厅"
+				"navigationBarTitleText": "大厅",
+				"onReachBottomDistance": 300
 			}
 		},
 		{

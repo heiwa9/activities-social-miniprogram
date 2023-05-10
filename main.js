@@ -5,7 +5,6 @@ import Vue from 'vue'
 import './uni.promisify.adaptor'
 import api from '@/common/api.js'
 
-
 Vue.config.productionTip = false
 App.mpType = 'app'
 const app = new Vue({

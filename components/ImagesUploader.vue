@@ -84,8 +84,7 @@
 				})
 				for (let i in images) {
 					file.imageUploader(this.osspath, images[i]).then((url) => {
-						this.images.push(url)
-						// this.$emit('imagesChange', this.images)
+						this.$emit('uploadImage',url)
 					}).catch((err) => {
 						console.log(err)
 					})
@@ -100,7 +99,7 @@
 					success: (res) => {
 						if (res.confirm) {
 							file.imageUpoladerDel(this.osspath, this.images[index]).then((res) => {
-								this.images.splice(index, 1)
+								this.$emit('delImage',index)
 							})
 						} else if (res.cancel) {
 							console.log('用户点击取消');

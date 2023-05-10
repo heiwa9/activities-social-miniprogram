@@ -40,30 +40,34 @@
 			</view>
 		</view>
 		<view class="post-comments">
-			<h2 class="comments-title" v-if="post.comments.total" >{{post.comments.total}}条留言：</h2>
+			<h2 class="comments-title" v-if="post.comments && post.comments.total">{{post.comments.total}}条留言：</h2>
 			<h2 class="comments-title" v-else>暂无留言</h2>
-			<view class="comment" v-for="comment in post.comments.list" :key="comment.id">
-				<view class="comment-header">
-					<img class="comment-avatar" :src="comment.userAvatar" alt="avatar">
-					<view>
-						<view class="comment-author">{{ comment.userName }}</view>
-						<view class="comment-time">{{ ts(comment.createdTime) }}</view>
+			<view v-if="post.comments && post.comments.list">
+				<view class="comment" v-for="comment in post.comments.list" :key="comment.id">
+					<view class="comment-header">
+						<img class="comment-avatar" :src="comment.userAvatar" alt="avatar">
+						<view>
+							<view class="comment-author">{{ comment.userName }}</view>
+							<view class="comment-time">{{ ts(comment.createdTime) }}</view>
+						</view>
 					</view>
+					<view class="comment-content">{{ comment.content }}</view>
 				</view>
-				<view class="comment-content">{{ comment.content }}</view>
 			</view>
-			<page-pagination v-show="show" :total="page.total"
-			 :showAround="true" :btnText="true" :forceEllipses="true" @change="change">
-			</page-pagination>
+			<view class="page-pagination">
+				<pagination v-if="page.total" :total="page.total" :pageNum.sync="page.current" :pageSize="page.size"
+					@num-change="getCommentToPage">
+				</pagination>
+			</view>
 		</view>
 	</view>
 </template>
 <script>
 	import time from '@/utils/time.js'
-	import PagePagination from '@/components/PagePagination.vue'
+	import Pagination from '@/uni_modules/ljs-pagination/components/ljs-pagination/ljs-pagination.vue'
 	export default {
-		componentsI(){
-			PagePagination
+		components: {
+			Pagination,
 		},
 		data() {
 			return {
@@ -98,21 +102,31 @@
 				},
 				pictures: [],
 				supported: false,
-				newComment: ''
+				newComment: '',
+				page: {
+					total: 0, //总页数
+					size: 5, //每页条数
+					current: 1 //默认当前页
+				},
+				show: false,
+				user:{}
 			}
+		},
+		watch: {
 		},
 		onLoad() {
 			// #ifdef H5
-			const id = this.$route.query.id
+			this.post.id = this.$route.query.id
 			// #endif
 			// #ifdef MP-WEIXIN
 			// 获取当前页面对象
 			const pages = getCurrentPages()
 			const currentPage = pages[pages.length - 1]
 			// 从页面对象中获取参数
-			const id = currentPage.options.id
+			this.post.id = currentPage.options.id
 			// #endif
-			this.$api.getPost(id).then((res) => {
+
+			this.$api.getPost(this.post.id).then((res) => {
 				this.post = res
 				this.pictures = res.pictures.split(',')
 				this.post.supporters = [{
@@ -120,20 +134,18 @@
 					avatar: 'https://dummyimage.com/100x100/000/fff'
 				}]
 			})
-			
-			this.$api.getComment(id,1,10).then((res) => {
-				this.$set(this.post,"comments",res)
-			})
-			
-			console.log(this.post)
+			this.getCommentToPage();
+			this.user = uni.getStorageSync("mine");
 		},
 		methods: {
 			supportPost() {
 				this.supported = !this.supported
 				if (this.supported) {
-					this.post.supporters.push({
-						id: this.post.supporters.length + 1,
-						avatar: 'https://dummyimage.com/100x100/000/fff'
+					this.$api.addPostSupporter(this.post.id,this.user.id).then((res)=>{
+						this.post.supporters.push({
+							id: this.post.supporters.length + 1,
+							avatar: this.user.avatar
+						})
 					})
 				} else {
 					this.post.supporters.pop()
@@ -142,21 +154,31 @@
 			postComment() {
 				if (this.newComment.trim()) {
 					let user = uni.getStorageSync("mine");
-					
-					this.$api.postComment(this.post.id,{userId:user.id,postId:this.post.id,content:this.newComment}).then((res) => {
+
+					this.$api.postComment(this.post.id, {
+						userId: user.id,
+						postId: this.post.id,
+						content: this.newComment
+					}).then((res) => {
 						if (res.status) {
 							this.post.comments.list.push({
-								userId:user.id,
-								userName:user.name,
-								userAvatar:user.avatar,
+								userId: user.id,
+								userName: user.name,
+								userAvatar: user.avatar,
 								content: this.newComment,
-								createdTime: (new Date()).getTime()*1000,
+								createdTime: (new Date()).getTime() * 1000,
 							})
-							this.$set(this.post,"comments",this.post.comments)
+							this.$set(this.post, "comments", this.post.comments)
 						}
 					})
 					this.newComment = ''
 				}
+			},
+			getCommentToPage() {
+				this.$api.getComment(this.post.id, this.page.current, this.page.size).then((res) => {
+					this.$set(this.post, "comments", res)
+					this.$set(this.page, "total", res.total)
+				})
 			},
 			showPreview(src, index) {
 				uni.previewImage({
@@ -351,5 +373,10 @@
 			}
 		}
 
+		.page-pagination {
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+		}
 	}
 </style>

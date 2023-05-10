@@ -1,95 +1,54 @@
 <template>
 	<view class="post-list">
 		<!-- 搜索框 -->
-		<view class="search-bar">
-			<input class="search-input" type="text" placeholder="搜索帖子" v-model.trim="search" />
-			<view class="search-icon">
-				<text class="uni-icon uni-icon-search"></text>
+		<view class="tabBar">
+			<view class="search-bar">
+				<input class="search-input" type="text" placeholder="搜索帖子" v-model.trim="search" @input="handleSearch" />
+				<view class="search-icon">
+					<text class="uni-icon uni-icon-search"></text>
+				</view>
 			</view>
-		</view>
 
-		<!-- 分类选项卡 -->
-		<view class="tab-bar">
-			<view class="tab-item" :class="{ active: activeTab === tab.id }" v-for="tab in tabs" :key="tab.id"
-				@click="activeTab = tab.id">
-				{{ tab.name }}
+			<view class="tab-bar" @click="refContent">
+				<view class="tab-item" :class="{ active: categoryId === tab.id }" v-for="tab in tabs" :key="tab.id"
+					@click="categoryId = tab.id">
+					{{ tab.name }}
+				</view>
 			</view>
 		</view>
+		<scroll-view scroll-y='true' class="post-container" @scrolltolower='scroll'>
+			<postList :posts="posts"></postList>
+			<view class="bottom" v-show="bottomOut">已经到底了~</view>
+		</scroll-view>
+		<!-- 分类选项卡 -->
+
 
 		<!-- 帖子列表 -->
-		<view class="post-container">
-			<view class="post-card" v-for="post in posts" :key="post.id" @click="goToPostDetail(post)">
-				<view class="post-header">
-					<view class="post-title">{{ post.title }}</view>
-					<view class="post-ctime">
-						{{ (new Date(post.createTime/1000)).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }) }}
-					</view>
-				</view>
-				<view class="post-content">
-					{{ post.content }}
-					<images-uploader :tool="false" :images="getImages(post.pictures)"></images-uploader>
-				</view>
 
-				<view class="post-footer">
-					<view class="post-author">
-						<image :src="post.userAvatar" mode="aspectFill" class="author-avatar"></image>
-						<text class="author-name">{{ post.userName }}</text>
-					</view>
-					<view class="post-support">
-						<text class="support-count">{{ post.supportCount }}</text>
-						<view class="supporters">
-							<image :src="supporter.avatar" mode="aspectFill" class="supporter-avatar"
-								v-for="supporter in post.supporters" :key="supporter.id"></image>
-						</view>
-						<text class="uni-icon uni-icon-likefill"></text>
-					</view>
-				</view>
-			</view>
-		</view>
 	</view>
 </template>
 
 <script>
-	import PostCard from './PostCard.vue'
 	import ImagesUploader from '@/components/ImagesUploader.vue'
+	import postList from '@/components/postList.vue'
 
 	export default {
 		components: {
-			PostCard,
-			ImagesUploader
+			ImagesUploader,
+			postList
 		},
 		data() {
 			return {
-				activeTab: 1,
+				categoryId: 'chabsl5dfihm4h3fblb0',
 				tabs: [],
 				posts: [],
-				search: ''
+				search: '',
+				user: {},
+				defaultPage: 0,
+				bottomOut: false
 			}
 		},
 		mounted() {
-			// 模拟从接口获取分类选项卡和帖子数据
-			this.tabs = [{
-					id: 1,
-					name: '全部'
-				},
-				{
-					id: 2,
-					name: '生活'
-				},
-				{
-					id: 3,
-					name: '旅游'
-				},
-				{
-					id: 4,
-					name: '美食'
-				},
-				{
-					id: 5,
-					name: '音乐'
-				}
-			]
-
 			// this.posts = [{
 			// 		id: 1,
 			// 		title: '今天天气真好',
@@ -135,33 +94,76 @@
 			// 		]
 			// 	}
 			// ]
-
-			this.getSchoolPost()
 		},
 		computed: {},
+		onReachBottom() {
+			console.log('12341')
+		},
+		onShow() {
+			this.user = uni.getStorageSync("mine");
+			this.getCategory()
+			this.getSchoolPost()
+		},
 		methods: {
-			goToPostDetail(post) {
-				uni.navigateTo({
-					url: `/pages/home/PostDetail?id=${post.id}`
+			async handleSearch(){
+				if(this.search === '') return
+				const res = await this.$api.getHomeSearch({schoolId:this.user.school_id,page:1,size:10,title:this.search})
+				this.posts = res.list
+				console.log(res)
+			},
+			// goToPostDetail(post) {
+			// 	uni.navigateTo({
+			// 		url: `/pages/home/PostDetail?id=${post.id}`
+			// 	})
+			// },
+			getCategory() {
+				this.$api.getCategory().then((res) => {
+					uni.setStorageSync("category", res.list)
+					this.tabs = res.list
 				})
 			},
 			getSchoolPost() {
-				let user = uni.getStorageSync("mine");
-
-				this.$api.getSchoolPost(user.school_id, 1, 10).then((res) => {
-					this.posts = res.list
+				this.$api.getPostSchoolCategory(this.user.school_id, this.categoryId, ++this.defaultPage, 10).then((
+					res) => {
+					if (res.list === null) {
+						this.bottomOut = true
+					} else {
+						this.posts.push(...res.list)
+					}
 				})
 			},
-			getImages(pictures) {
-				console.log(pictures.split(','))
-				return pictures.split(',')
-			}
+			// getImages(pictures) {
+			// 	return pictures.split(',')
+			// },
+			refContent() {
+				this.defaultPage = 0
+				this.posts = []
+				console.log(this.categoryId)
+				this.$api.getPostSchoolCategory(this.user.school_id,
+					this.categoryId, ++this.defaultPage, 10).then((
+					res) => {
+					this.posts = res.list
+				})
+				// this.getSchoolPost()
+			},
+			scroll(e) {
+				if (typeof e === 'object') {
+					this.getSchoolPost()
+				}
+			},
+
 		}
 	}
 </script>
 
 <style scoped>
+	.tabBar {
+		position: fixed;
+		width: calc(100% - 20px);
+	}
+
 	.post-list {
+		height: calc(100vh - 20px);
 		padding: 20rpx;
 	}
 
@@ -215,100 +217,15 @@
 	}
 
 	.post-container {
-		display: flex;
+		height: calc(100% - 100px);
+		overflow: auto;
+		/* position: relative; */
+		margin-top: 100px;
+		/* 		display: flex;
 		flex-wrap: wrap;
+ */
 	}
 
-	.post-card {
-		width: 100%;
-		margin-bottom: 10rpx;
-		background-color: #fff;
-		border-radius: 20rpx;
-		box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
-		overflow: hidden;
-		transition: box-shadow 0.2s ease;
-	}
-
-	.post-card:hover {
-		box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
-	}
-
-	.post-header {
-		display: flex;
-		flex-direction: row;
-		padding: 20rpx;
-		border-bottom: 1rpx solid #eee;
-	}
-
-	.post-title {
-		flex: 1;
-		color: #333;
-		font-size: 34rpx;
-	}
-
-	.post-ctime {
-		flex: 1;
-		font-size: 22rpx;
-		max-width: 160upx;
-		text-align: right;
-	}
-
-	.post-content {
-		font-size: 30rpx;
-		color: #666;
-		margin: 20rpx;
-		line-height: 1.5;
-	}
-
-	.post-footer {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		font-size: 28rpx;
-		color: #999;
-		padding: 20rpx;
-		border-top: 1rpx solid #eee;
-	}
-
-	.post-author {
-		display: flex;
-		align-items: center;
-	}
-
-	.author-avatar {
-		width: 60rpx;
-		height: 60rpx;
-		border-radius: 50%;
-		margin-right: 10rpx;
-	}
-
-	.author-name {
-		font-weight: bold;
-		color: #333;
-	}
-
-	.post-support {
-		display: flex;
-		align-items: center;
-	}
-
-	.support-count {
-		margin-right: 10rpx;
-	}
-
-	.supporters {
-		display: flex;
-		align-items: center;
-		margin-right: 10rpx;
-	}
-
-	.supporter-avatar {
-		width: 36rpx;
-		height: 36rpx;
-		border-radius: 50%;
-		margin-right: -10rpx;
-		border: 2rpx solid #fff;
-	}
 
 	.uni-icon {
 		font-size: 36rpx;
@@ -318,5 +235,14 @@
 
 	.uni-icon-likefill {
 		color: #ff4444;
+	}
+
+	.bottom {
+		width: 80%;
+		padding-top: 10px;
+		margin: 20px auto;
+		border-top: 1px solid #e3e3e3;
+		color: #666;
+		text-align: center;
 	}
 </style>

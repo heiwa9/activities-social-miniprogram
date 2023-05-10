@@ -47,7 +47,7 @@
 		},
 		methods: {
 			async fetchAutocomplete() {
-				this.autocompleteList = [2, 3];
+				this.autocompleteList = [1, 2];
 			},
 			setAvatar() {
 				let user = uni.getStorageSync("mine");
