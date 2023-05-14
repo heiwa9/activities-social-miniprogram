@@ -93,6 +93,19 @@
 				this.images.splice(delImageIndex, 1)
 			},
 			submitForm() {
+				let eMsg = ''
+				if(this.title){
+					eMsg = '标题不能为空'
+				}
+				if(this.content==''){
+					eMsg = '内容不能为空'
+				}
+				if(eMsg){
+					uni.showToast({
+						icon:'error',
+						title:eMsg
+					})
+				}
 				let user = uni.getStorageSync("mine");
 				console.log(this.images, this.categoryId)
 				this.$api.postPost({

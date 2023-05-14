@@ -98,7 +98,7 @@
 					content: '确定删除?',
 					success: (res) => {
 						if (res.confirm) {
-							file.imageUpoladerDel(this.osspath, this.images[index]).then((res) => {
+							file.imageUpoladerDel(this.images[index]).then((res) => {
 								this.$emit('delImage',index)
 							})
 						} else if (res.cancel) {

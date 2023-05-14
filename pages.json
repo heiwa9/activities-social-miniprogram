@@ -38,6 +38,25 @@
 			"style": {
 				"navigationBarTitleText": "详情"
 			}
+		},
+		{
+			"path": "pages/myPush/myPush",
+			"style": {
+				"navigationBarTitleText": "我的发布"
+			}
+		},
+		{
+			"path": "pages/mySupport/mySupport",
+			"style": {
+				"navigationBarTitleText": "我的加入"
+			}
+		}
+		,
+		{
+			"path": "pages/suppoter/suppoter",
+			"style": {
+				"navigationBarTitleText": "加入招募"
+			}
 		}
 	],
 	"tabBar": {

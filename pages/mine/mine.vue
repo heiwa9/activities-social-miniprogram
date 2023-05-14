@@ -43,10 +43,14 @@
 		},
 		methods: {
 			myPush(){
-				
+				uni.navigateTo({
+					url:'/pages/myPush/myPush'
+				})
 			},
 			myJoin(){
-				
+				uni.navigateTo({
+					url:'/pages/mySupport/mySupport'
+				})
 			},
 			closeAccount(){
 				

@@ -2,6 +2,7 @@
 	<view class="register">
 		<div class="avatar">
 			<img :src="avatarUrl" alt="avatar" mode="aspectFill" @click="handleAvatarClick" />
+			<view class="edit-avatar">设置头像</view>
 		</div>
 
 		<input type="text" class="input" placeholder="校区" v-model="keyword" @input="handleInput" />
@@ -37,42 +38,47 @@
 			}
 		},
 		methods: {
-			chooseImage() {
-				uni.chooseImage({
-					count: 1,
-					sizeType: ['compressed'],
-					sourceType: ['album', 'camera'],
-					success: (res) => {
-						this.avatarUrl = res.tempFilePaths[0]
-					},
-				})
-			},
 			register() {
-				if (this.pwd1 == this.pwd2 && this.school_id != "" && this.pwd1 != "") {
-					this.$api.userRegister({
-						avatar: this.avatarUrl,
-						email: this.email,
-						name: this.name,
-						password: this.pwd1,
-						school_id: this.school_id
-					}).then((res) => {
-						uni.showToast({
-							title: "注册成功",
-							duration: 1000,
-						});
-						setInterval(function() {
-							uni.redirectTo({
-								url: '/pages/login/login',
-							});
-						}, 1000)
-					})
-				} else {
-					uni.showToast({
-						title: '密码不一致',
-						icon: 'none',
-						duration: 2000,
-					});
+				let eMsg = ''
+				if (this.pwd1) {
+					eMsg = '密码不能为空'
 				}
+				if (this.pwd1 != this.pwd2) {
+					eMsg = '密码不一致'
+				}
+				let validateEmail = (email) => {
+					const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
+					return emailRegex.test(email);
+				}
+				if (!validateEmail(this.email)) {
+					eMsg = '邮箱格式错误'
+				}
+				if (this.school_id == '') {
+					eMsg = '校区暂未开放'
+				}
+				if (eMsg) {
+					uni.showToast({
+						icon: 'error',
+						title: eMsg
+					})
+				}
+				this.$api.userRegister({
+					avatar: this.avatarUrl,
+					email: this.email,
+					name: this.name,
+					password: this.pwd1,
+					school_id: this.school_id
+				}).then((res) => {
+					uni.showToast({
+						title: "注册成功",
+						duration: 1000,
+					});
+					setInterval(function() {
+						uni.redirectTo({
+							url: '/pages/login/login',
+						});
+					}, 1000)
+				})
 			},
 			async handleInput() {
 				if (!this.keyword) {
@@ -98,7 +104,7 @@
 				uni.chooseImage({
 					count: 1,
 					success: (res) => {
-						file.imageUploader(res.tempFiles[0]).then((url) => {
+						file.imageUploader('user/avatar', res.tempFiles[0]).then((url) => {
 							this.avatarUrl = url
 						}).catch((err) => {
 							console.log(err)
@@ -128,6 +134,19 @@
 				width: 100%;
 				height: 100%;
 				border-radius: 50%;
+			}
+
+			.edit-avatar {
+				width: 100%;
+				background-color: gray;
+				color: #fff;
+				border: none;
+				outline: none;
+				font-size: 14px;
+				text-align: center;
+				transform: translateY(-100%);
+				padding: 2px 0px 2px 0px;
+				border-radius: 0px 0px 50px 50px;
 			}
 		}
 

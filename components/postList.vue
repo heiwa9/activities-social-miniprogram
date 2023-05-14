@@ -12,7 +12,7 @@
 				<images-uploader v-if="post.pictures" :tool="false" :images="post.pictures.split(',')">
 				</images-uploader>
 			</view>
-		
+
 			<view class="post-footer">
 				<view class="post-author">
 					<image :src="post.userAvatar" mode="aspectFill" class="author-avatar"></image>
@@ -21,7 +21,7 @@
 				<view class="post-support">
 					<text class="support-count">{{ post.supportCount }}</text>
 					<view class="supporters">
-						<image :src="supporter.avatar" mode="aspectFill" class="supporter-avatar"
+						<image v-if="supporter.access == 0" :src="supporter.avatar" mode="aspectFill" class="supporter-avatar"
 							v-for="supporter in post.supporters" :key="supporter.id"></image>
 					</view>
 					<text class="uni-icon uni-icon-likefill"></text>
@@ -29,24 +29,24 @@
 			</view>
 		</view>
 	</view>
-	
+
 </template>
 
 <script>
-		import ImagesUploader from '@/components/ImagesUploader.vue'
-	
+	import ImagesUploader from '@/components/ImagesUploader.vue'
+
 	export default {
-		name:"postList",
-		props:{
-			posts:{
-				type:Array,
-				default:()=>[]
+		name: "postList",
+		props: {
+			posts: {
+				type: Array,
+				default: () => []
 			}
 		},
-		components:{
+		components: {
 			ImagesUploader
 		},
-		methods:{
+		methods: {
 			goToPostDetail(post) {
 				uni.navigateTo({
 					url: `/pages/home/PostDetail?id=${post.id}`
@@ -57,14 +57,15 @@
 </script>
 
 <style lang="scss">
-.post-card {
-		width: 100%;
-		margin-bottom: 10rpx;
+	.post-card {
+		width: 98%;
+		margin: 20upx auto 20upx auto;
 		background-color: #fff;
 		border-radius: 20rpx;
-		box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+		box-shadow: 0 2upx 4upx rgba(0, 0, 0, 0.2);
 		overflow: hidden;
 		transition: box-shadow 0.2s ease;
+		border: 1px solid gray;
 	}
 
 	.post-card:hover {
@@ -75,7 +76,7 @@
 		display: flex;
 		flex-direction: row;
 		padding: 20rpx;
-		border-bottom: 1rpx solid #eee;
+		border-bottom: 1rpx solid #999;
 	}
 
 	.post-title {
@@ -93,7 +94,7 @@
 
 	.post-content {
 		font-size: 30rpx;
-		color: #666;
+		color: #333;
 		margin: 20rpx;
 		line-height: 1.5;
 	}
@@ -103,9 +104,9 @@
 		align-items: center;
 		justify-content: space-between;
 		font-size: 28rpx;
-		color: #999;
+		color: #eee;
 		padding: 20rpx;
-		border-top: 1rpx solid #eee;
+		border-top: 1rpx solid #999;
 	}
 
 	.post-author {
@@ -144,8 +145,7 @@
 		width: 36rpx;
 		height: 36rpx;
 		border-radius: 50%;
-		margin-right: -10rpx;
+		margin-right: -10upx;
 		border: 2rpx solid #fff;
 	}
-
 </style>

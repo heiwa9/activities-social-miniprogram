@@ -24,6 +24,13 @@ function imageUploader(osspath,fileobj) {
 		// #ifdef H5
 		let suffix = getFileSuffix(fileobj.name)
 		// #endif
+		// if(suffix!='.png' || suffix!='.jpg' || suffix != '.jpeg' || suffix != '.gif'){
+		// 	uni.showToast({
+		// 		icon:'error',
+		// 		title:'图片格式错误'
+		// 	})
+		// 	return
+		// }
 		api.getUpload(osspath, suffix).then((reply) => {
 			// #ifdef MP-WEIXIN
 			api.putUpload(reply.url, {
@@ -57,8 +64,8 @@ function imageUploader(osspath,fileobj) {
 	});
 }
 
-function imageUpoladerDel(url) {
-	return api.delUpload(url)
+function imageUpoladerDel(picture) {
+	return api.delUpload(picture.split('/').slice(4).join('/'))
 }
 
 export default {

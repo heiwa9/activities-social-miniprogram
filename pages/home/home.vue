@@ -20,11 +20,6 @@
 			<postList :posts="posts"></postList>
 			<view class="bottom" v-show="bottomOut">已经到底了~</view>
 		</scroll-view>
-		<!-- 分类选项卡 -->
-
-
-		<!-- 帖子列表 -->
-
 	</view>
 </template>
 
@@ -48,54 +43,6 @@
 				bottomOut: false
 			}
 		},
-		mounted() {
-			// this.posts = [{
-			// 		id: 1,
-			// 		title: '今天天气真好',
-			// 		content: '今天天气真好，正适合钓鱼。',
-			// 		author: {
-			// 			name: '小明',
-			// 			avatar: 'https://randomuser.me/api/portraits/men/81.jpg'
-			// 		},
-			// 		createdAt: '2022-04-23 12:23',
-			// 		supportCount: 8,
-			// 		supporters: [{
-			// 				id: 1,
-			// 				avatar: 'https://randomuser.me/api/portraits/men/82.jpg'
-			// 			},
-			// 			{
-			// 				id: 2,
-			// 				avatar: 'https://randomuser.me/api/portraits/women/75.jpg'
-			// 			},
-			// 			{
-			// 				id: 3,
-			// 				avatar: 'https://randomuser.me/api/portraits/men/22.jpg'
-			// 			},
-			// 			{
-			// 				id: 4,
-			// 				avatar: 'https://randomuser.me/api/portraits/women/46.jpg'
-			// 			},
-			// 			{
-			// 				id: 5,
-			// 				avatar: 'https://randomuser.me/api/portraits/men/31.jpg'
-			// 			},
-			// 			{
-			// 				id: 6,
-			// 				avatar: 'https://randomuser.me/api/portraits/women/63.jpg'
-			// 			},
-			// 			{
-			// 				id: 7,
-			// 				avatar: 'https://randomuser.me/api/portraits/men/67.jpg'
-			// 			},
-			// 			{
-			// 				id: 8,
-			// 				avatar: 'https://randomuser.me/api/portraits/women/26.jpg'
-			// 			}
-			// 		]
-			// 	}
-			// ]
-		},
-		computed: {},
 		onReachBottom() {
 			console.log('12341')
 		},

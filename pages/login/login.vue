@@ -12,7 +12,10 @@
 					<input class="input-box" type="password" placeholder="密码" v-model="password" />
 				</view>
 				<view class="form-item">
-					<text class="register-link" @click="goToRegister">还没有账号？立即注册</text>
+					<view class="form-text">
+						<text class="register-link" @click="goToRegister">还没有账号？立即注册</text>
+						<text class="ferget-password" @click="">忘记密码?</text>
+					</view>
 				</view>
 				<view class="form-item form-checkbox">
 					<checkbox class="checkbox" v-model="rememberMe" color="#2d8cf0" @click="handleChange" checked />
@@ -42,6 +45,7 @@
 				if (user.remember) {
 					this.email = user.email;
 					this.password = user.password;
+					this.avatar = user.avatar
 				}
 			}
 		},
@@ -59,6 +63,18 @@
 			},
 			login() {
 				// 登录逻辑
+				let validateEmail = (email) => {
+					const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
+					return emailRegex.test(email);
+				}
+				if (!validateEmail(this.email)) {
+					uni.showToast({
+						icon: 'error',
+						title: '邮箱格式错误'
+					})
+					return
+				}
+
 				this.$api.userLogin({
 					email: this.email,
 					password: this.password
@@ -73,6 +89,13 @@
 							url: '/pages/home/home'
 						});
 					};
+				}).catch((e) => {
+					if (e.statusCode == 400) {
+						uni.showToast({
+							icon: 'error',
+							title: '邮箱或密码输入错误！！！'
+						})
+					}
 				});
 			},
 			goToRegister() {
@@ -105,16 +128,17 @@
 			border-radius: 40px 40px 40px 40px;
 			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 			backdrop-filter: blur(5px);
-			
+
 			.login-container::before {
-			  content: '';
-			  position: absolute;
-			  top: 0;
-			  left: 0;
-			  width: 100%;
-			  height: 100%;
-			  background-color: rgba(255, 255, 255, 0.5); /* 半透明白色 */
-			  z-index: -1;
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(255, 255, 255, 0.5);
+				/* 半透明白色 */
+				z-index: -1;
 			}
 
 			.avatar-container {
@@ -175,10 +199,21 @@
 						align-items: center;
 					}
 
-					.register-link {
-						color: darkgreen;
-						font-size: 14px;
-						cursor: pointer;
+					.form-text {
+						display: flex;
+						justify-content: space-between;
+
+						.register-link {
+							color: darkgreen;
+							font-size: 14px;
+							cursor: pointer;
+						}
+
+						.ferget-password {
+							color: palevioletred;
+							font-size: 14px;
+							text-align: right;
+						}
 					}
 				}
 			}
