@@ -2,7 +2,8 @@ import request from '@/utils/request.js'
 import operate from '@/common/operate.js'
 
 const req = request({
-	baseUrl: 'http://10.0.0.148:9901'
+	// baseUrl: 'http://192.168.0.8:9901'
+	baseUrl:'http://39.106.11.18:9901'
 });
 
 //全局定义请求头
@@ -42,4 +43,7 @@ export default {
 		status: status
 	}),
 	getUserSupporterPost: (userId) => req.get(`/user/${userId}/supporter`),
+	postReply: (e) => req.post(`/post/${e.postId}/comment/${e.commentId}/reply`,e.data),
+	delComment: (e) => req.delete(`/post/${e.postId}/comment/${e.id}`),
+	delReply: (e) => req.delete(`/post/${e.postId}/comment/${e.commentId}/reply/${e.id}`)
 }

@@ -19,7 +19,7 @@
 					<text class="author-name">{{ post.userName }}</text>
 				</view>
 				<view class="post-support">
-					<text class="support-count">{{ post.supportCount }}</text>
+					<text class="support-count">{{ post.supporterCount }}</text>
 					<view class="supporters">
 						<image v-if="supporter.access == 0" :src="supporter.avatar" mode="aspectFill" class="supporter-avatar"
 							v-for="supporter in post.supporters" :key="supporter.id"></image>
@@ -104,7 +104,7 @@
 		align-items: center;
 		justify-content: space-between;
 		font-size: 28rpx;
-		color: #eee;
+		color: #333;
 		padding: 20rpx;
 		border-top: 1rpx solid #999;
 	}

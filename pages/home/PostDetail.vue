@@ -19,71 +19,79 @@
 				<p>时间：{{ (new Date(post.meetingTime/1000)).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }) }}</p>
 				<p v-if="post.meetingAddress">地点：{{ post.meetingAddress }}</p>
 			</view>
-		</view>
 
-		<view class="supporters-list">
-			<view class="supporters-heard">
-				<view class="supporters-title">{{ post.supporters && post.supporters.length > 0 ? '参加者：' : '暂无参加者' }}</view>
-				<view class="break" v-if="post.supporters" @tap="checkSupporter">点击查看</view>
-			</view>
-			<view class="supporters">
-				<view class="supporter" v-for="supporter in post.supporters" :key="supporter.id">
-					<img class="supporter-avatar" :src="supporter.avatar" alt="supporter-avatar">
+
+			<view class="supporters-list">
+				<view class="supporters-heard">
+					<view class="supporters-title">{{ post.supporterCount > 0 ? '共'+post.supporterCount+'人参加：' : '暂无参加者' }}</view>
+					<view class="break" v-if="post.supporters" @tap="checkSupporter">点击查看</view>
 				</view>
-			</view>
-			<view class="support-btn" @click="supportPost">{{ supported ? '已加入' : '加入' }}</view>
-		</view>
-
-		
-
-		<view class="add-comment">
-			<textarea class="comment-input" placeholder="写点评论吧……" v-model="newCommentContent"></textarea>
-			<view class="comment-header" @click="postComment">
-				<image class="comment-img" src="@/static/send.svg"></image>
-				<view class="comment-desc">发表评论</view>
-			</view>
-		</view>
-
-		<!-- 评论区 -->
-		<view class="comments">
-			<view v-for="comment in post.comments" :key="comment.id" class="comment">
-				<!-- 评论内容 -->
-				<view class="comment-header">
-					<img class="avatar" :src="comment.userAvatar" alt="Avatar" />
-					<view class="comment-info">
-						<view class="comment-author">{{ comment.userName }}</view>
-						<view class="comment-time">{{ comment.timestamp }}</view>
+				<view class="supporters">
+					<view class="supporter" v-for="supporter in post.supporters" :key="supporter.id">
+						<img class="supporter-avatar" :src="supporter.avatar" alt="supporter-avatar">
 					</view>
 				</view>
-				<view class="comment-content">
-					{{ comment.content }}
-				</view>
+				<view class="support-btn" @click="supportPost">{{ supported ? '已加入' : '加入' }}</view>
+			</view>
 
-				<!-- 楼中楼回复 -->
-				<view class="replies">
-					<view v-for="reply in comment.replies" :key="reply.id" class="reply">
-						<!-- 回复内容 -->
-						<view class="reply-header">
-							<img class="avatar" :src="reply.userAvatar" alt="Avatar" />
-							<view class="reply-info">
-								<view class="reply-author">{{ reply.userName }}</view>
-								<view class="reply-time">{{ reply.timestamp }}</view>
+			<!-- 评论区 -->
+			<view v-if="post.comments" class="comments">
+				<view class="comment-title">{{ post.comments && post.comments.total ? '共'+post.comments.total+'条回复：':'暂无回复' }}
+				</view>
+				<view v-for="(comment,idx1) in post.comments.list" :key="comment.id" class="comment">
+					<!-- 评论内容 -->
+					<view class="comment-header">
+						<img class="avatar" :src="comment.userAvatar" alt="Avatar" />
+						<view class="comment-info">
+							<view class="comment-author">{{ comment.userName }}</view>
+							<view class="comment-time">{{ t2f(comment.createdTime) }}</view>
+						</view>
+						<image v-if="comment.userId == user.id" class="comment-del-icon" src="@/static/delete.svg" @tap="delComment(comment,idx1)"></image>
+					</view>
+					<view class="comment-content">
+						{{ comment.content }}
+					</view>
+
+					<!-- 楼中楼回复 -->
+					<view class="replies">
+						<view v-for="(reply,idx2) in comment.replies" :key="reply.id" class="reply">
+							<!-- 回复内容 -->
+							<view class="reply-header">
+								<img class="avatar" :src="reply.userAvatar" alt="Avatar" />
+								<view class="reply-info">
+									<view class="reply-author">{{ reply.userName }}</view>
+									<view class="reply-time">{{ t2f(reply.createTime)  }}</view>
+								</view>
+								<image v-if="reply.userId == user.id" class="reply-del-icon" src="@/static/delete.svg" @tap="delReply(reply,idx1,idx2)"></image>
+							</view>
+							<view class="reply-content">
+								{{ reply.content }}
 							</view>
 						</view>
-						<view class="reply-content">
-							{{ reply.content }}
-						</view>
+					</view>
+
+					<!-- 添加楼中楼回复的输入框 -->
+					<view v-if="comment.showReplyInput" class="add-reply">
+						<input v-model="comment.newReplyContent" type="text" placeholder="添加回复..." />
+						<view class="reply-btn" @click="addReply(comment)">发送</view>
+					</view>
+
+					<!-- 回复按钮 -->
+					<view class="reply-button">
+						<image v-if="!comment.showReplyInput" @click="toggleReplyInput(comment)" src="@/static/msg.svg"></image>	
 					</view>
 				</view>
+			</view>
+			<view v-else>
+				<view class="comment-title">暂无回复</view>
+			</view>
 
-				<!-- 添加楼中楼回复的输入框 -->
-				<view v-if="comment.showReplyInput" class="add-reply">
-					<input v-model="comment.newReplyContent" type="text" placeholder="添加回复..." />
-					<button @click="addReply(comment)">发送</button>
+			<view class="add-comment">
+				<textarea class="comment-input" placeholder="写点评论吧……" v-model="newCommentContent"></textarea>
+				<view class="comment-header" @click="postComment">
+					<image class="comment-img" src="@/static/send.svg"></image>
+					<view class="comment-desc">发表评论</view>
 				</view>
-
-				<!-- 回复按钮 -->
-				<view class="reply-button" @click="toggleReplyInput(comment)">回复</view>
 			</view>
 		</view>
 	</view>
@@ -98,8 +106,8 @@
 				t2f: time.time2feel,
 				supported: false,
 				showCommentInput: true,
-				user:{},
-				post:{},
+				user: {},
+				post: {},
 				pictures: [],
 				page: {
 					total: 0, //总页数
@@ -107,18 +115,7 @@
 					current: 1 //默认当前页
 				},
 				newCommentContent: "",
-				comments: [{
-						id: 1,
-						userAvatar: "http://10.0.0.148:9000/social/user/avatar-1b8c1670.jpg",
-						userName: "User1",
-						content: "评论1的内容",
-						timestamp: "2023-05-13 10:00:00",
-						replies: [],
-						showReplyInput: false,
-						newReplyContent: ""
-					},
-					// 其他评论数据...
-				],
+				comments: [],
 			};
 		},
 		onLoad() {
@@ -167,16 +164,33 @@
 				}
 			},
 			addReply(comment) {
-				const reply = {
-					id: comment.replies.length + 1,
-					userAvatar: "current-user-avatar.jpg",
-					userName: "Current User",
-					content: comment.newReplyContent,
-					timestamp: new Date().toLocaleString()
-				};
-				comment.replies.push(reply);
-				comment.showReplyInput = false;
-				comment.newReplyContent = "";
+				this.$api.postReply({
+					postId: this.post.id,
+					commentId: comment.id,
+					data: {
+						userId: this.user.id,
+						commentId: comment.id,
+						content: comment.newReplyContent
+					}
+				}).then((res) => {
+					res.userName = this.user.name
+					res.userAvatar = this.user.avatar
+					if(!comment.replies){
+						comment.replies = []
+					}
+					comment.replies.push(res);
+					comment.showReplyInput = false;
+					comment.newReplyContent = "";
+				})
+			},
+			delReply(reply,idx1,idx2){
+				this.$api.delReply({
+					id: reply.id,
+					postId: this.post.id,
+					commentId: reply.commentId,
+				}).then((res)=>{
+					this.post.comments.list[idx1].replies.splice(idx2,1)
+				})
 			},
 			checkSupporter() {
 				uni.navigateTo({
@@ -199,32 +213,44 @@
 				}
 			},
 			postComment() {
-				if (this.newComment.trim()) {
+				if (this.newCommentContent.trim()) {
 					this.$api.postComment(this.post.id, {
 						userId: this.user.id,
 						postId: this.post.id,
 						content: this.newCommentContent
 					}).then((res) => {
 						if (res.status) {
+							if(!this.post.comments.list){
+								this.post.comments.list = []
+							}
 							this.post.comments.list.push({
-								userId: user.id,
-								userName: user.name,
-								userAvatar: user.avatar,
-								content: this.newComment,
+								userId: this.user.id,
+								userName: this.user.name,
+								userAvatar: this.user.avatar,
+								content: this.newCommentContent,
 								createdTime: (new Date()).getTime() * 1000,
 							})
-							this.$set(this.post, "comments", this.post.comments)
+							this.newCommentContent = ''
 						}
 					})
-					this.newComment = ''
+					
 				}
+			},
+			delComment(comment,index){
+				this.$api.delComment({
+					id: comment.id,
+					postId: comment.postId
+				}).then((res)=>{
+					this.post.comments.list.splice(index,1)
+				})
 			},
 			getCommentToPage() {
 				this.$api.getComment(this.post.id, this.page.current, this.page.size).then((res) => {
-					res.list.forEach(item => {
-					  item.showReplyInput = false;
+					res.list?.forEach(item => {
+						item.showReplyInput = false
+						item.newReplyContent = ''
 					});
-					this.$set(this.post, "comments", res.list)
+					this.$set(this.post, "comments", res)
 					this.$set(this.page, "total", res.total)
 				})
 			},
@@ -240,7 +266,7 @@
 
 <style scoped lang="scss">
 	.post {
-		margin: 0upx 0upx 0upx 20upx;
+		padding: 30upx;
 
 		.post-header {
 			display: flex;
@@ -288,7 +314,6 @@
 			.supporters-title {
 				font-size: 18px;
 				font-weight: bold;
-				margin-left: 20upx;
 			}
 
 			.break {
@@ -306,7 +331,6 @@
 			.supporter {
 				display: flex;
 				align-items: center;
-				margin: 10upx 0upx 0upx 20upx;
 
 				.supporter-avatar {
 					width: 40px;
@@ -334,7 +358,7 @@
 				background-color: #f9f9f9;
 			}
 		}
-		
+
 	}
 
 	.add-comment {
@@ -384,6 +408,13 @@
 	}
 
 	.comments {
+
+		.comment-title {
+			font-size: 18px;
+			font-weight: bold;
+			margin-bottom: 10upx;
+		}
+
 		.comment {
 			background-color: #fff;
 			padding: 10px;
@@ -410,6 +441,12 @@
 						color: gray;
 						font-size: 12px;
 					}
+				}
+				
+				.comment-del-icon{
+					width: 60upx;
+					height: 60upx;
+					margin-left: auto;
 				}
 			}
 
@@ -449,6 +486,13 @@
 								font-size: 12px;
 							}
 						}
+						
+						.reply-del-icon{
+							width: 60upx;
+							height: 60upx;
+							margin-left: auto;
+						}
+						
 					}
 
 					.reply-content {
@@ -459,6 +503,7 @@
 			}
 
 			.add-reply {
+				position: relative;
 				display: flex;
 				align-items: center;
 				margin-top: 10px;
@@ -471,8 +516,10 @@
 					margin-right: 6px;
 				}
 
-				button {
-					padding: 6px 12px;
+				.reply-btn {
+					position: absolute;
+					right: 20upx;
+					padding: 9upx 24upx;
 					background-color: #007bff;
 					color: #fff;
 					border: none;
@@ -482,9 +529,13 @@
 			}
 
 			.reply-button {
-				color: blue;
-				margin-top: 10px;
-				cursor: pointer;
+				width: 60upx;
+				height: 60upx;
+				image{
+					width: 60upx;
+					height: 60upx;
+				}
+				margin-left: auto;
 			}
 		}
 	}
