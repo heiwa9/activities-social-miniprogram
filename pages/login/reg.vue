@@ -40,7 +40,7 @@
 		methods: {
 			register() {
 				let eMsg = ''
-				if (this.pwd1) {
+				if (this.pwd1 =='') {
 					eMsg = '密码不能为空'
 				}
 				if (this.pwd1 != this.pwd2) {
@@ -56,11 +56,12 @@
 				if (this.school_id == '') {
 					eMsg = '校区暂未开放'
 				}
-				if (eMsg) {
+				if (eMsg!='') {
 					uni.showToast({
 						icon: 'error',
 						title: eMsg
 					})
+					return
 				}
 				this.$api.userRegister({
 					avatar: this.avatarUrl,
